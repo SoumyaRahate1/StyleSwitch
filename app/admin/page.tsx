@@ -18,7 +18,6 @@ import {
   XCircle,
   Filter,
   Download,
-  BarChart3,
   Activity,
   ShieldCheck,
 } from "lucide-react"
@@ -38,12 +37,12 @@ const stats = {
   reportedUsers: 3,
 }
 
-// Sample reported items
+// Fixed reported items configuration with robust property-level fallback guards
 const reportedItems = [
   {
     id: "report-1",
-    item: sampleItems[0],
-    reporter: sampleUsers[1],
+    item: sampleItems?.[0] || { id: "err-1", name: "Loading...", images: ["/placeholder.jpg"], userName: "" },
+    reporter: sampleUsers?.[1] || { id: "u-err-1", name: "User" },
     reason: "Misleading photos",
     description: "The item condition appears much worse than described in the listing.",
     date: "2024-05-29",
@@ -51,8 +50,8 @@ const reportedItems = [
   },
   {
     id: "report-2",
-    item: sampleItems[2],
-    reporter: sampleUsers[3],
+    item: sampleItems?.[2] || { id: "err-2", name: "Loading...", images: ["/placeholder.jpg"], userName: "" },
+    reporter: sampleUsers?.[3] || { id: "u-err-2", name: "User" },
     reason: "Counterfeit item",
     description: "This appears to be a fake designer item being sold as authentic.",
     date: "2024-05-28",
@@ -60,8 +59,8 @@ const reportedItems = [
   },
   {
     id: "report-3",
-    item: sampleItems[5],
-    reporter: sampleUsers[2],
+    item: sampleItems?.[5] || { id: "err-3", name: "Loading...", images: ["/placeholder.jpg"], userName: "" },
+    reporter: sampleUsers?.[2] || { id: "u-err-3", name: "User" },
     reason: "Inappropriate content",
     description: "Item description contains inappropriate language.",
     date: "2024-05-27",
@@ -88,16 +87,20 @@ export default function AdminPage() {
     )
   }
 
-  const filteredUsers = sampleUsers.filter(user =>
+  // Safe fallback to an empty array if data fails to fetch or import as expected
+  const safeUsers = sampleUsers || []
+  const safeItems = sampleItems || []
+
+  const filteredUsers = safeUsers.filter(user =>
     searchQuery === "" ||
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredItems = sampleItems.filter(item =>
+  const filteredItems = safeItems.filter(item =>
     searchQuery === "" ||
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.brand.toLowerCase().includes(searchQuery.toLowerCase())
+    item?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item?.brand?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
@@ -134,7 +137,7 @@ export default function AdminPage() {
         {/* Tabs */}
         <div className="flex items-center gap-2 border-b border-border mb-8">
           {[
-            { value: "overview", label: "Overview", icon: BarChart3 },
+            { value: "overview", label: "Overview", icon: Activity },
             { value: "users", label: "Users", icon: Users },
             { value: "listings", label: "Listings", icon: Package },
             { value: "reports", label: "Reports", icon: AlertTriangle, badge: reports.filter(r => r.status === "pending").length },
@@ -243,7 +246,7 @@ export default function AdminPage() {
               <div className="bg-card rounded-2xl border border-border p-6">
                 <h2 className="text-lg font-bold text-foreground mb-4">Recent Users</h2>
                 <div className="space-y-4">
-                  {sampleUsers.slice(0, 4).map((user) => (
+                  {safeUsers.slice(0, 4).map((user: any) => (
                     <div key={user.id} className="flex items-center gap-3">
                       <img
                         src={user.avatar}
@@ -263,10 +266,10 @@ export default function AdminPage() {
               <div className="bg-card rounded-2xl border border-border p-6">
                 <h2 className="text-lg font-bold text-foreground mb-4">Recent Listings</h2>
                 <div className="space-y-4">
-                  {sampleItems.slice(0, 4).map((item) => (
+                  {safeItems.slice(0, 4).map((item: any) => (
                     <div key={item.id} className="flex items-center gap-3">
                       <img
-                        src={item.images[0]}
+                        src={item?.images?.[0] || "/placeholder.jpg"}
                         alt={item.name}
                         className="w-10 h-10 rounded-lg object-cover"
                       />
@@ -318,7 +321,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredUsers.map((user) => (
+                    {filteredUsers.map((user: any) => (
                       <tr key={user.id} className="border-t border-border hover:bg-muted/30 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -381,14 +384,14 @@ export default function AdminPage() {
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredItems.map((item) => (
+              {filteredItems.map((item: any) => (
                 <div
                   key={item.id}
                   className="bg-card rounded-2xl border border-border overflow-hidden"
                 >
                   <div className="relative aspect-square overflow-hidden">
                     <img
-                      src={item.images[0]}
+                      src={item?.images?.[0] || "/placeholder.jpg"}
                       alt={item.name}
                       className="w-full h-full object-cover"
                     />
@@ -442,16 +445,16 @@ export default function AdminPage() {
                 >
                   <div className="flex items-start gap-4">
                     <img
-                      src={report.item.images[0]}
-                      alt={report.item.name}
+                      src={report.item?.images?.[0] || "/placeholder.jpg"}
+                      alt={report.item?.name || "Reported Item"}
                       className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <div>
-                          <h3 className="font-bold text-foreground">{report.item.name}</h3>
+                          <h3 className="font-bold text-foreground">{report.item?.name || "Unknown Item"}</h3>
                           <p className="text-sm text-muted-foreground">
-                            Listed by {report.item.userName} · Reported by {report.reporter.name}
+                            Listed by {(report.item as any)?.userName || "Unknown"} · Reported by {report.reporter?.name || "Anonymous"}
                           </p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
