@@ -1,5 +1,4 @@
 "use client"
-
 import Link from "next/link"
 import { useState } from "react"
 import {
@@ -410,10 +409,10 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2 mt-2">
                       <img
                         src={item.userAvatar}
-                        alt={item.userName}
+                        alt={(item as any).userName || "User"}
                         className="w-5 h-5 rounded-full object-cover"
                       />
-                      <span className="text-xs text-muted-foreground">{item.userName}</span>
+                      <span className="text-xs text-muted-foreground">{(item as any).userName || "Unknown"}</span>
                     </div>
                   </div>
                 </div>
