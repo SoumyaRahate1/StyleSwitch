@@ -393,6 +393,13 @@ export function Footer() {
               <li><Link href="/how-it-works" className="text-muted-foreground hover:text-foreground text-sm transition-colors">How It Works</Link></li>
             </ul>
           </div>
+          <div className="mt-4">
+  <h4 className="font-bold text-foreground mb-4">Legal</h4>
+  <ul className="space-y-2">
+    <li><Link href="/privacy" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Privacy Policy</Link></li>
+    <li><Link href="/terms" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Terms of Service</Link></li>
+  </ul>
+</div>
 
           <div>
             <h4 className="font-bold text-foreground mb-4">Company</h4>
