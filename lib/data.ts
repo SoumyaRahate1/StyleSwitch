@@ -292,26 +292,42 @@ export const searchItems = (query: string) => {
       item.brand.toLowerCase().includes(lowerQuery)
   );
 };
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string; 
+}
 
 export const sampleUsers = [
-  { id: "1", name: "Soumya R.", email: "soumya@gmail.com" },
-  { id: "2", name: "Netra", email: "netra@gmail.com" },
-  { id: "3", name: "Shikha R.", email: "shikha@gmail.com" },
-  { id: "4", name: "Noah V.", email: "noah@gmail.com" },
-  { id: "5", name: "Taraksh B.", email: "taraksh@gmail.com" },
-  { id: "6", name: "Deshna M.", email: "deshna@gmail.com" },
-  { id: "7", name: "Jess", email: "Jess@gmail.com" },
-  { id: "8", name: "Garima Duggal", email: "garima@gmail.com" },
-  { id: "9", name: "Agastya G.", email: "agastya@gmail.com" },
-  { id: "10", name: "Judy H.", email: "judy@gmail.com" },
-  { id: "11", name: "Ashi K.", email: "ashi@gmail.com" },
-  { id: "12", name: "Sargun N.", email: "sargun@gmail.com" },
-  { id: "13", name: "Vikram", email: "vikram@gmail.com" },
-  { id: "14", name: "Nikita Reddy", email: "nikita@gmail.com" },
-  { id: "15", name: "Arjun R.", email: "arjun@gmail.com" },
-  { id: "16", name: "Bilaal", email: "bilaal@gmail.com" },
-  { id: "17", name: "Vrushali R.", email: "vrushali@gmail.com" },
-  { id: "18", name: "Rechal Jemini", email: "rechal@gmail.com" },
-  { id: "19", name: "Nick Wilde", email: "nick@gmail.com" },
-  { id: "20", name: "Aniket k.", email: "aniket@gmail.com" },
+  { id: "1", name: "Soumya R.", email: "soumya@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "2", name: "Netra", email: "netra@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "3", name: "Shikha R.", email: "shikha@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "4", name: "Noah V.", email: "noah@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "5", name: "Taraksh B.", email: "taraksh@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "6", name: "Deshna M.", email: "deshna@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "7", name: "Jess", email: "Jess@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "8", name: "Garima Duggal", email: "garima@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "9", name: "Agastya G.", email: "agastya@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "10", name: "Judy H.", email: "judy@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "11", name: "Ashi K.", email: "ashi@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "12", name: "Sargun N.", email: "sargun@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "13", name: "Vikram", email: "vikram@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "14", name: "Nikita Reddy", email: "nikita@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "15", name: "Arjun R.", email: "arjun@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "16", name: "Bilaal", email: "bilaal@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "17", name: "Vrushali R.", email: "vrushali@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "18", name: "Rechal Jemini", email: "rechal@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "19", name: "Nick Wilde", email: "nick@gmail.com", avatar: "/avatar1.jpg" },
+  { id: "20", name: "Aniket k.", email: "aniket@gmail.com", avatar: "/avatar1.jpg" },
 ];
+export interface SwapRequest {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  offeredItemId: string;
+  requestedItemId: string;
+  status: "pending" | "accepted" | "completed" | "rejected";
+  message?: string;
+  createdAt: string;
+}

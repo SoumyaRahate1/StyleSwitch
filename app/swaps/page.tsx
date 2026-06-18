@@ -14,7 +14,7 @@ import {
   Filter,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { sampleItems, sampleUsers, type SwapRequest } from "@/lib/data"
+import { type SwapRequest, type User, sampleItems, sampleUsers } from "@/lib/data"
 
 // Extended sample swap requests for this page
 const swapRequests: (SwapRequest & {
@@ -32,9 +32,9 @@ const swapRequests: (SwapRequest & {
     status: "pending",
     message: "Hey! Love your denim jacket. Would you be interested in swapping for my blazer?",
     createdAt: "2024-05-29",
-    fromUser: sampleUsers[1],
+    fromUser: sampleUsers[1] || sampleUsers[0],
     toUser: sampleUsers[0],
-    offeredItem: sampleItems[1],
+    offeredItem: sampleItems[1] || sampleItems[0],
     requestedItem: sampleItems[0],
   },
   {
@@ -46,10 +46,10 @@ const swapRequests: (SwapRequest & {
     status: "pending",
     message: "That cashmere sweater is gorgeous! I have these cargo pants that might be a fair trade.",
     createdAt: "2024-05-28",
-    fromUser: sampleUsers[3],
+    fromUser: sampleUsers[3] || sampleUsers[0],
     toUser: sampleUsers[0],
-    offeredItem: sampleItems[3],
-    requestedItem: sampleItems[4],
+    offeredItem: sampleItems[3] || sampleItems[0],
+    requestedItem: sampleItems[4] || sampleItems[0],
   },
   {
     id: "swap-3",
@@ -61,9 +61,9 @@ const swapRequests: (SwapRequest & {
     message: "Love the floral dress! Would you swap for my denim jacket?",
     createdAt: "2024-05-25",
     fromUser: sampleUsers[0],
-    toUser: sampleUsers[2],
+    toUser: sampleUsers[2] || sampleUsers[0],
     offeredItem: sampleItems[0],
-    requestedItem: sampleItems[2],
+    requestedItem: sampleItems[2] || sampleItems[0],
   },
   {
     id: "swap-4",
@@ -74,10 +74,10 @@ const swapRequests: (SwapRequest & {
     status: "completed",
     message: "Your linen pants would be perfect for summer! Want to swap for my crossbody bag?",
     createdAt: "2024-05-20",
-    fromUser: sampleUsers[2],
+    fromUser: sampleUsers[2] || sampleUsers[0],
     toUser: sampleUsers[0],
-    offeredItem: sampleItems[6],
-    requestedItem: sampleItems[11],
+    offeredItem: sampleItems[6] || sampleItems[0],
+    requestedItem: sampleItems[11] || sampleItems[0], // Safe fallback if index 11 doesn't exist
   },
   {
     id: "swap-5",
@@ -89,9 +89,9 @@ const swapRequests: (SwapRequest & {
     message: "Would love to swap my cashmere for your vintage band tee!",
     createdAt: "2024-05-18",
     fromUser: sampleUsers[0],
-    toUser: sampleUsers[3],
-    offeredItem: sampleItems[4],
-    requestedItem: sampleItems[5],
+    toUser: sampleUsers[3] || sampleUsers[0],
+    offeredItem: sampleItems[4] || sampleItems[0],
+    requestedItem: sampleItems[5] || sampleItems[0],
   },
 ]
 
@@ -243,7 +243,8 @@ export default function SwapsPage() {
           {filteredRequests.length > 0 ? (
             filteredRequests.map((request) => {
               const isIncoming = request.toUserId === currentUserId
-              const otherUser = isIncoming ? request.fromUser : request.toUser
+              const targetUserId = isIncoming ? request.fromUserId : request.toUserId;
+              const otherUser = sampleUsers.find(u => u.id === targetUserId);
               const theirItem = isIncoming ? request.offeredItem : request.requestedItem
               const myItem = isIncoming ? request.requestedItem : request.offeredItem
 
@@ -256,14 +257,14 @@ export default function SwapsPage() {
                     {/* Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={otherUser.avatar}
-                          alt={otherUser.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
+                        <img 
+  src={otherUser?.avatar || "/placeholder-user.jpg"} 
+  alt={otherUser?.name || "User"} 
+  className="w-10 h-10 rounded-full object-cover" 
+/>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-foreground">{otherUser.name}</span>
+                            <span className="font-medium text-foreground">{otherUser?.name || "Unknown User"}</span>
                             <span className="text-xs text-muted-foreground">
                               {isIncoming ? "wants to swap with you" : "received your request"}
                             </span>
@@ -280,19 +281,19 @@ export default function SwapsPage() {
                     {/* Items Comparison */}
                     <div className="flex items-center gap-4">
                       {/* Their Item */}
-                      <Link href={`/item/${theirItem.id}`} className="flex-1 group">
+                      <Link href={`/item/${theirItem?.id || "#"}`} className="flex-1 group">
                         <div className="bg-muted rounded-xl p-3 flex items-center gap-3 hover:bg-muted/80 transition-colors">
                           <img
-                            src={theirItem.images[0]}
-                            alt={theirItem.name}
+                            src={theirItem?.images?.[0] || "/placeholder.jpg"}
+                            alt={theirItem?.name || "Item"}
                             className="w-16 h-16 rounded-lg object-cover"
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground mb-1">
                               {isIncoming ? "They offer" : "You want"}
                             </p>
-                            <h4 className="font-medium text-foreground truncate">{theirItem.name}</h4>
-                            <p className="text-sm text-muted-foreground">~₹{theirItem.estimatedValue.toLocaleString('en-IN')}</p>
+                            <h4 className="font-medium text-foreground truncate">{theirItem?.name || "Unknown Item"}</h4>
+                            <p className="text-sm text-muted-foreground">~₹{(theirItem?.estimatedValue || 0).toLocaleString('en-IN')}</p>
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
@@ -301,19 +302,19 @@ export default function SwapsPage() {
                       <RefreshCw className="w-5 h-5 text-muted-foreground flex-shrink-0" />
 
                       {/* My Item */}
-                      <Link href={`/item/${myItem.id}`} className="flex-1 group">
+                      <Link href={`/item/${myItem?.id || "#"}`} className="flex-1 group">
                         <div className="bg-muted rounded-xl p-3 flex items-center gap-3 hover:bg-muted/80 transition-colors">
                           <img
-                            src={myItem.images[0]}
-                            alt={myItem.name}
+                            src={myItem?.images?.[0] || "/placeholder.jpg"}
+                            alt={myItem?.name || "Item"}
                             className="w-16 h-16 rounded-lg object-cover"
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground mb-1">
                               {isIncoming ? "For your" : "You offer"}
                             </p>
-                            <h4 className="font-medium text-foreground truncate">{myItem.name}</h4>
-                            <p className="text-sm text-muted-foreground">~₹{myItem.estimatedValue.toLocaleString('en-IN')}</p>
+                            <h4 className="font-medium text-foreground truncate">{myItem?.name || "Unknown Item"}</h4>
+                            <p className="text-sm text-muted-foreground">~₹{(myItem?.estimatedValue || 0).toLocaleString('en-IN')}</p>
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
