@@ -245,8 +245,8 @@ export default function SwapsPage() {
               const isIncoming = request.toUserId === currentUserId
               const targetUserId = isIncoming ? request.fromUserId : request.toUserId;
               const otherUser = sampleUsers.find(u => u.id === targetUserId);
-              const theirItem = isIncoming ? request.offeredItem : request.requestedItem
-              const myItem = isIncoming ? request.requestedItem : request.offeredItem
+              const theirItem = (isIncoming ? request.offeredItem : request.requestedItem) || { name: "Unknown Item", estimatedValue: 0 };
+              const myItem = (isIncoming ? request.requestedItem : request.offeredItem) || { name: "Unknown Item", estimatedValue: 0 };
 
               return (
                 <div
@@ -284,10 +284,10 @@ export default function SwapsPage() {
                       <Link href={`/item/${theirItem?.id || "#"}`} className="flex-1 group">
                         <div className="bg-muted rounded-xl p-3 flex items-center gap-3 hover:bg-muted/80 transition-colors">
                           <img
-                            src={theirItem?.images?.[0] || "/placeholder.jpg"}
-                            alt={theirItem?.name || "Item"}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
+  src={theirItem?.images?.[0] || theirItem?.image || "/placeholder.jpg"}
+  alt={theirItem?.name || "Item"}
+  className="w-16 h-16 rounded-lg object-cover"
+/>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground mb-1">
                               {isIncoming ? "They offer" : "You want"}
@@ -305,10 +305,10 @@ export default function SwapsPage() {
                       <Link href={`/item/${myItem?.id || "#"}`} className="flex-1 group">
                         <div className="bg-muted rounded-xl p-3 flex items-center gap-3 hover:bg-muted/80 transition-colors">
                           <img
-                            src={myItem?.images?.[0] || "/placeholder.jpg"}
-                            alt={myItem?.name || "Item"}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
+  src={myItem?.images?.[0] || myItem?.image || "/placeholder.jpg"}
+  alt={myItem?.name || "Item"}
+  className="w-16 h-16 rounded-lg object-cover"
+/>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground mb-1">
                               {isIncoming ? "For your" : "You offer"}
