@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Send, Sparkles, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,31 +24,54 @@ export default function ChatDetailPage() {
   const partnerName = targetItem?.user || "Community Swapper"
   const partnerAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerName)}&background=random&color=fff&size=100`
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "them",
-      text: targetItem 
-        ? `Hey there! I saw your interest in my ${targetItem.name}. Are you down to swap?`
-        : "Hey there! Are you down to swap?",
-      time: "4:15 PM"
+  const storageKey = `chat_messages_${chatId}`
+
+  const [messages, setMessages] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error(e)
+        }
+      }
     }
-  ])
+    return [
+      {
+        id: 1,
+        sender: "them",
+        text: targetItem 
+          ? `Hey there! I saw your interest in my ${targetItem.name}. Are you down to swap?`
+          : "Hey there! Are you down to swap?",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]
+  })
+  
   const [newMessage, setNewMessage] = useState("")
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(messages))
+  }, [messages, storageKey])
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim()) return
 
-    setMessages((prev) => [
-      ...prev,
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    const updatedMessages = [
+      ...messages,
       {
-        id: prev.length + 1,
+        id: Date.now(),
         sender: "me",
         text: newMessage,
-        time: "4:17 PM"
+        time: currentTime
       }
-    ])
+    ]
+
+    setMessages(updatedMessages)
     setNewMessage("")
   }
 
@@ -61,7 +84,7 @@ export default function ChatDetailPage() {
             <button onClick={() => router.back()} className="p-1 rounded-full hover:bg-muted transition-colors">
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
-            <img src={partnerAvatar} alt="" className="w-10 h-10 rounded-full" />
+            <img src={partnerAvatar} alt="" className="w-10 h-10 rounded-full object-cover" />
             <div>
               <h1 className="font-bold text-foreground text-sm sm:text-base">{partnerName}</h1>
               <p className="text-xs text-green-500 font-medium">Online</p>
@@ -103,7 +126,7 @@ export default function ChatDetailPage() {
       {/* Chat Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="max-w-5xl mx-auto space-y-4">
-          {messages.map((msg) => (
+          {messages.map((msg: any) => (
             <div key={msg.id} className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
                 msg.sender === "me" 

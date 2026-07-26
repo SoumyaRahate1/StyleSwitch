@@ -1,29 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Sparkles, SlidersHorizontal, Grid, LayoutGrid } from "lucide-react"
+import { Sparkles, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { sampleItems } from "@/lib/data"
 
 export default function BrowsePage() {
-  // 1. State Managers for Interactive Controls
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [sortBy, setSortBy] = useState("Newest First")
   const [searchQuery, setSearchQuery] = useState("")
   const [showSortDropdown, setShowSortDropdown] = useState(false)
+  const [allCombinedItems, setAllCombinedItems] = useState(sampleItems)
+
+  // LocalStorage se custom listed items load karna
+  useEffect(() => {
+    const savedCustomItems = localStorage.getItem("user_custom_items")
+    if (savedCustomItems) {
+      try {
+        const parsedItems = JSON.parse(savedCustomItems)
+        // Ensure image fields map correctly for the UI format
+        const formattedCustomItems = parsedItems.map((item: any) => ({
+          ...item,
+          image: item.images?.[0] || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518",
+          user: "You (Current User)"
+        }))
+        // Combine static sample items and newly listed items
+        setAllCombinedItems([...formattedCustomItems, ...sampleItems])
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  }, [])
 
   const categories = ["All", "Tops", "Bottoms", "Dresses", "Outerwear", "Ethnic"]
 
-  // 2. Filter Logic
-  const filteredItems = sampleItems.filter((item) => {
+  // Filter Logic
+  const filteredItems = allCombinedItems.filter((item) => {
     const matchesCategory = selectedCategory === "All" || item.category.toLowerCase() === selectedCategory.toLowerCase()
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.brand.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesCategory && matchesSearch
   })
 
-  // 3. Sorting Logic
+  // Sorting Logic
   const sortedItems = [...filteredItems].sort((a, b) => {
     if (sortBy === "Value: Low to High") {
       return a.estimatedValue - b.estimatedValue
@@ -31,8 +51,7 @@ export default function BrowsePage() {
     if (sortBy === "Value: High to Low") {
       return b.estimatedValue - a.estimatedValue
     }
-    // Default: Newest First (Fallback safe array reverse or ID matching)
-    return Number(b.id) - Number(a.id)
+    return 0
   })
 
   return (
@@ -60,11 +79,11 @@ export default function BrowsePage() {
 
           <div className="flex items-center gap-3">
             <Link 
-  href="/list" 
-  className="px-4 py-2 bg-[#ff007f] text-white rounded-full text-sm font-medium hover:bg-[#e00070] transition-colors"
->
-  List Item
-</Link>
+              href="/list" 
+              className="px-4 py-2 bg-[#ff007f] text-white rounded-full text-sm font-medium hover:bg-[#e00070] transition-colors"
+            >
+              List Item
+            </Link>
             <Link href="/dashboard"><Button size="sm" variant="ghost">Dashboard</Button></Link>
           </div>
         </div>
@@ -139,7 +158,7 @@ export default function BrowsePage() {
                   <div className="relative aspect-[3/4] bg-muted">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     <div className="absolute top-2 right-2 px-2.5 py-1 bg-background/90 backdrop-blur-md rounded-full text-xs font-bold text-foreground">
-                      ~₹{item.estimatedValue.toLocaleString('en-IN')}
+                      ~₹{Number(item.estimatedValue || 0).toLocaleString('en-IN')}
                     </div>
                   </div>
                   <div className="p-3">

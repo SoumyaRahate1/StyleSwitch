@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   Sparkles,
@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { sampleItems, type ClothingItem } from "@/lib/data"
@@ -26,31 +27,50 @@ export default function ItemDetailPage() {
   const [isLiked, setIsLiked] = useState(false)
   const [showSwapModal, setShowSwapModal] = useState(false)
   const [selectedSwapItem, setSelectedSwapItem] = useState<string | null>(null)
+  
+  const [item, setItem] = useState<ClothingItem | null>(null)
+  const [allAvailableItems, setAllAvailableItems] = useState<ClothingItem[]>([])
 
   const itemId = params?.id as string
 
-  // Fetch the item directly from sampleItems array safely
-  const item = sampleItems.find((i) => i.id === itemId)
+  useEffect(() => {
+    const customItems = JSON.parse(localStorage.getItem("user_custom_items") || "[]")
+    const combined = [...customItems, ...sampleItems]
+    setAllAvailableItems(combined)
 
-  // Filter items by matching the item owner string safely
+    const foundItem = combined.find((i: any) => i.id === itemId)
+    if (foundItem) {
+      setItem(foundItem)
+    }
+  }, [itemId])
+
+  const isMyItem = item?.user === "You (Current User)"
+
+  const handleDeleteItem = () => {
+    if (confirm("Are you sure you want to delete this listed item?")) {
+      const customItems = JSON.parse(localStorage.getItem("user_custom_items") || "[]")
+      const updatedCustomItems = customItems.filter((i: any) => i.id !== itemId)
+      localStorage.setItem("user_custom_items", JSON.stringify(updatedCustomItems))
+      router.push("/dashboard")
+    }
+  }
+
   const userItems = item 
-    ? sampleItems.filter((i) => i.user === item.user && i.id !== item.id) 
+    ? allAvailableItems.filter((i) => i.user === item.user && i.id !== item.id) 
     : []
 
-  // Dynamic profile metadata configuration
   const user = item
     ? {
         id: "mock-user-id",
         name: item.user || "Community Swapper",
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(item.user || "CS")}&background=random&color=fff&size=150`,
-        location: item.location || "India",
+        location: (item as any).location || "India",
         rating: 4.8,
         itemsListed: userItems.length + 1,
         successfulSwaps: 8,
       }
     : null
 
-  // Link copy feature mechanism
   const handleShareLink = () => {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href)
@@ -82,14 +102,12 @@ export default function ItemDetailPage() {
     setCurrentImageIndex((prev) => (prev - 1 + imagesArray.length) % imagesArray.length)
   }
 
-  // Ensures mock data is explicitly provided to prevent an empty selection loop
-  const myItems = sampleItems.filter((i) => i.user !== item.user).length > 0
-    ? sampleItems.filter((i) => i.user !== item.user).slice(0, 4)
-    : sampleItems.slice(0, 3)
+  const myItems = allAvailableItems.filter((i) => i.user !== item.user).length > 0
+    ? allAvailableItems.filter((i) => i.user !== item.user).slice(0, 4)
+    : allAvailableItems.slice(0, 3)
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -111,7 +129,6 @@ export default function ItemDetailPage() {
                 <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
               </button>
               
-              {/* FIXED: Added onClick share event handler */}
               <button 
                 onClick={handleShareLink}
                 className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -126,7 +143,6 @@ export default function ItemDetailPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Image Gallery */}
           <div className="space-y-4">
             <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-muted">
               <img src={imagesArray[currentImageIndex]} alt={item.name} className="w-full h-full object-cover" />
@@ -143,7 +159,6 @@ export default function ItemDetailPage() {
             </div>
           </div>
 
-          {/* Item Details */}
           <div className="space-y-6">
             <div>
               <div className="flex items-start justify-between gap-4 mb-2">
@@ -168,7 +183,6 @@ export default function ItemDetailPage() {
               </p>
             </div>
 
-            {/* Seller Info */}
             <div className="bg-card rounded-2xl border border-border p-4">
               <div className="flex items-center gap-4">
                 <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover shadow-inner" />
@@ -195,32 +209,45 @@ export default function ItemDetailPage() {
               </div>
             </div>
 
-            {/* Main Action Buttons Frame */}
+            {/* Conditional Action Buttons: If it's your item, show Manage/Delete option instead of Request Swap */}
             <div className="flex gap-3 relative z-40">
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setShowSwapModal(true)
-                }}
-                type="button"
-                className="flex-1 h-14 rounded-xl bg-[#ff007f] hover:bg-[#e00070] text-white text-lg font-semibold shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] relative z-50"
-                style={{ pointerEvents: 'auto' }}
-              >
-                <RefreshCw className="w-5 h-5" />
-                Request Swap
-              </button>
-              
-              <Link href={`/chat/${item.id}?item=${item.id}`} className="relative z-50">
-                <Button variant="outline" className="h-14 rounded-xl px-6 cursor-pointer" type="button">
-                  <MessageCircle className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-                </Button>
-              </Link>
+              {isMyItem ? (
+                <>
+                  <button
+                    onClick={handleDeleteItem}
+                    type="button"
+                    className="flex-1 h-14 rounded-xl bg-red-500 hover:bg-red-600 text-white text-lg font-semibold shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98]"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Delete Item
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setShowSwapModal(true)
+                    }}
+                    type="button"
+                    className="flex-1 h-14 rounded-xl bg-[#ff007f] hover:bg-[#e00070] text-white text-lg font-semibold shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] relative z-50"
+                  >
+                    <RefreshCw className="w-5 h-5" />
+                    Request Swap
+                  </button>
+                  
+                  <Link href={`/chat/${item.id}?item=${item.id}`} className="relative z-50">
+                    <Button variant="outline" className="h-14 rounded-xl px-6 cursor-pointer" type="button">
+                      <MessageCircle className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
       </main>
 
-      {/* Swap Modal Container */}
       {showSwapModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 

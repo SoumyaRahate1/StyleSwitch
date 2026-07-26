@@ -51,11 +51,46 @@ export default function ListItemPage() {
     tags: "",
   })
 
+  // FIXED: Compress images before converting to Base64 to prevent QuotaExceededError
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) {
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file))
-      setImages(prev => [...prev, ...newImages].slice(0, 5))
+      Array.from(files).forEach(file => {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const img = new Image()
+          img.src = event.target?.result as string
+          img.onload = () => {
+            const canvas = document.createElement("canvas")
+            const MAX_WIDTH = 500
+            const MAX_HEIGHT = 500
+            let width = img.width
+            let height = img.height
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width
+                width = MAX_WIDTH
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height
+                height = MAX_HEIGHT
+              }
+            }
+
+            canvas.width = width
+            canvas.height = height
+            const ctx = canvas.getContext("2d")
+            ctx?.drawImage(img, 0, 0, width, height)
+            
+            // Compressed data url
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.7)
+            setImages(prev => [...prev, dataUrl].slice(0, 5))
+          }
+        }
+        reader.readAsDataURL(file)
+      })
     }
   }
 
@@ -72,10 +107,34 @@ export default function ListItemPage() {
     
     setIsSubmitting(true)
     
-    // Simulate API call storage setup
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    const newItem = {
+      id: "item-" + Date.now(),
+      userId: "user-1",
+      user: "You (Current User)",
+      name: formData.name,
+      brand: formData.brand,
+      category: formData.category,
+      size: formData.size,
+      condition: formData.condition,
+      estimatedValue: Number(formData.estimatedValue) || 0,
+      description: formData.description,
+      images: images,
+      image: images[0] || "",
+      createdAt: new Date().toISOString(),
+    }
+
+    try {
+      const existingItems = JSON.parse(localStorage.getItem("user_custom_items") || "[]")
+      localStorage.setItem("user_custom_items", JSON.stringify([newItem, ...existingItems]))
+    } catch (error) {
+      alert("Storage is full! Please clear some old items.")
+      setIsSubmitting(false)
+      return
+    }
     
-    // Redirect to dashboard cleanly
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setIsSubmitting(false)
+    
     router.push("/dashboard?listed=true")
   }
 
